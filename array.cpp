@@ -35,11 +35,11 @@
                 delete[] data;
             }
 
-            data = new double[rvalue.n];
+			data = new long double[rvalue.n];
             n = rvalue.n;
         }
 
-        memcpy(data, rvalue.data, sizeof(double) * n);
+		memcpy(data, rvalue.data, sizeof(long double) * n);
 
         return (*this);
     }
@@ -64,13 +64,13 @@
         if (n == this->n)
             return;
 
-        double *newData = new double[n];
+		long double *newData = new long double[n];
 
         if (data)
         {
             int min_n = (this->n < n) ? this->n : n;
 
-            memcpy(newData, data, sizeof(double)*min_n);
+			memcpy(newData, data, sizeof(long double)*min_n);
 
             delete[] data;
         }
@@ -118,7 +118,7 @@
 
 
     /* Operator of multiplication of a vector by a number	*/
-    TVector TVector::operator * (double arg) const
+	TVector TVector::operator * (long double arg) const
     {
         TVector V( n );
 
@@ -130,9 +130,9 @@
 
 
     /* Operator for scalar multiplication of vectors	*/
-    double TVector::operator * (const TVector& arg) const
+	long double TVector::operator * (const TVector& arg) const
     {
-        double r = 0;
+		long double r = 0;
 
         for (int i = 0; i < n; i++)
             r += data[i] * arg[i];
@@ -172,14 +172,14 @@
 
 
     /* Friendly function - the operator multiplying the number of vector	*/
-    TVector operator * (double lvalue, const TVector& rvalue)
+	TVector operator * (long double lvalue, const TVector& rvalue)
     {
         return rvalue * lvalue;
     }
 
 
     /* The module (length) vector	*/
-    double TVector::length() const
+	long double TVector::length() const
     {
         return sqrt((*this)*(*this));
     }
@@ -188,7 +188,7 @@
     /* Normalization of the vector	*/
     TVector& TVector::norm()
     {
-        double r = this->length();
+		long double r = this->length();
 
         if (r > 0)
             for (int i = 0; i < n; i++)
@@ -227,7 +227,7 @@
             resize(rvalue.n, rvalue.m);
 
             for (int i = 0; i < n; i++)
-                memcpy(data[i], rvalue.data[i], sizeof(double)*m);
+				memcpy(data[i], rvalue.data[i], sizeof(long double)*m);
         }
 
         return (*this);
@@ -260,9 +260,9 @@
 
             for (int i = 0; i < min_n; i++)
             {
-                double *newDataRow = new double[ m ];
+				long double *newDataRow = new long double[ m ];
 
-                memcpy(newDataRow, data[i], sizeof(double)*min_m);
+				memcpy(newDataRow, data[i], sizeof(long double)*min_m);
 
                 delete[] data[i];
 
@@ -274,9 +274,9 @@
 
         if (this->n != n)
         {
-            double **newData = new double*[ n ];
+			long double **newData = new long double*[ n ];
 
-            memcpy(newData, data, sizeof(double*)*min_n);
+			memcpy(newData, data, sizeof(long double*)*min_n);
 
             for (int i = n; i < this->n; i++)
                 delete[] data[i];
@@ -285,7 +285,7 @@
                 delete[] data;
 
             for (int i = this->n; i < n; i++)
-                newData[i] = new double[ m ];
+				newData[i] = new long double[ m ];
                 data = newData;
             this->n = n;
         }
@@ -332,7 +332,7 @@
 
 
     /* Operator to multiply a matrix by a number	*/
-    TMatrix TMatrix::operator * (double arg) const
+	TMatrix TMatrix::operator * (long double arg) const
     {
         TMatrix M(n, m);
 
@@ -393,7 +393,7 @@
 
 
     /* Friendly feature - the operator multiplying the number of the matrix	*/
-    TMatrix operator * (double lvalue, const TMatrix& rvalue)
+	TMatrix operator * (long double lvalue, const TMatrix& rvalue)
     {
         return rvalue * lvalue;
     }
@@ -422,7 +422,7 @@
         TMatrix X( E(n) ),
         A(*this);
 
-        double tmp;
+		long double tmp;
 
         for (int i = 0; i < n; i++)
         {
@@ -467,7 +467,7 @@
     /* Function swap rows	*/
     TMatrix& TMatrix::swapRows(int i, int j)
     {
-        double buf;
+		long double buf;
 
         for (int k = 0; k < m; k++)
         {

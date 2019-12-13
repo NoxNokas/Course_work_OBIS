@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>914</width>
-    <height>435</height>
+    <width>1328</width>
+    <height>620</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -22,8 +22,8 @@
      <rect>
       <x>10</x>
       <y>20</y>
-      <width>891</width>
-      <height>251</height>
+      <width>1281</width>
+      <height>481</height>
      </rect>
     </property>
     <property name="mouseTracking">
@@ -36,8 +36,8 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>350</x>
-      <y>320</y>
+      <x>570</x>
+      <y>500</y>
       <width>101</width>
       <height>51</height>
      </rect>
@@ -52,7 +52,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>914</width>
+     <width>1328</width>
      <height>20</height>
     </rect>
    </property>

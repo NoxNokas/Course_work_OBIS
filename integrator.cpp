@@ -17,7 +17,7 @@ struct STypeZero
     T value;
 };
 
-STypeZero< long double > g_ldZero;
+STypeZero<  long double > g_ldZero;
 
 
 
@@ -47,7 +47,7 @@ TDormandPrinceIntegrator::TDormandPrinceIntegrator()
     : TIntegrator()
 {
     // Определение машинного нуля
-    double v = 1.;
+	long double v = 1.;
     while (1.+v > 1.) {
         u = v;
         v = v/2.;
@@ -61,7 +61,7 @@ long double TDormandPrinceIntegrator::Run(TModel* Model)
 
 //printf ("\n1.1");
 
-    long double // Это время для интегрирования (увеличивается на величину шага интегрирования)
+	long double // Это время для интегрирования (увеличивается на величину шага интегрирования)
                 t = Model->getT0(),
                 // Это время для выдачи (увеличивается дискретно на величину плотности)
                 t_out = t,
@@ -125,7 +125,7 @@ long double TDormandPrinceIntegrator::Run(TModel* Model)
                 X1[k] += K[j][k] * b1[j] * h;
                 X2[k] += K[j][k] * b2[j] * h;
             }
-            e += powl( h * (X1[k] - X2[k]) / max( max( fabsl(X[k]), fabsl(X1[k]) ), max((long double)1e-5, 2*g_ldZero.value/Eps) ) , 2 );
+			e += powl( h * (X1[k] - X2[k]) / max( max( fabsl(X[k]), fabsl(X1[k]) ), max((long double)1e-5, 2*g_ldZero.value/Eps) ) , 2 );
         }
         e = sqrtl( e / X.size() );
 
@@ -139,7 +139,7 @@ long double TDormandPrinceIntegrator::Run(TModel* Model)
         // Формирование результатов при помощи механизма плотной выдачи
         while ( (t_out < t + h) && (t_out <= t1) )
         {
-            long double l_ldTheta = (t_out - t)/h,
+			long double l_ldTheta = (t_out - t)/h,
                         b[6];
 
              // Рассчитываем коэффициенты плотной выдачи
@@ -153,7 +153,7 @@ long double TDormandPrinceIntegrator::Run(TModel* Model)
             // Получаем результат для выдачи
             for ( int k = X.high(); k >= 0; k-- )
             {
-                long double l_ldSum  = 0;
+				long double l_ldSum  = 0;
                 for ( int j = 5; j >= 0; j-- )
                     l_ldSum += b[j] * K[j][k];
                 Xout[k] = X[k] + h * l_ldSum;
