@@ -27,8 +27,8 @@ void MainWindow::showResult(TModel* model){
 
 	unsigned long int i = 0;					//ограничение для итерации
 	long double t0 = 0,			//время начала интегрирования
-				t1 = 171.2,		//время конца интегрирования
-				tStart = 32.687l,	//время запуска двигателя
+				t1 = 171.2l - 1,		//время конца интегрирования
+				tStart = 32.687l - 1,	//время запуска двигателя
 				pci1 = 0,		//Пси 1
 				pci2 = 0,		//Пси 2
 				pci3 = 0,		//Пси 3
@@ -41,21 +41,17 @@ void MainWindow::showResult(TModel* model){
 	Integrator->Run( model );
 	TMatrix Result = model->getResult();
 
-//	do{
-//		i++;
-//		model->setT0(t0);
-//		model->setT1(t1);
-//		model->setTStart(tStart);
-//		Integrator->setPrecision(static_cast<long double>(1e-15));
-//		Integrator->Run( model );
-//		Result = model->getResult();
-//		if (Result(Result.rowHigh(),1) > 100){
-//			t1 = t1 + step;
-//			if ((t1 > tStart) && (abs(Result(Result.rowHigh(),2)) > 100))
-//				tStart = tStart + step;
-//		}
-//	}
-//	while ( i <= 10 || ((Result(Result.rowHigh(),1) > 100) && (abs(Result(Result.rowHigh(),2)) > 100)));
+	while ((pow(Result(Result.rowHigh(),1),2) + pow(Result(Result.rowHigh(),2),2)) > 1000){
+		t1 +=step;
+		tStart = 0;
+		model->setT1(t1);
+		while ((t1 > tStart) && (abs(Result(Result.rowHigh(),2)) > 100)){
+			tStart += step;
+			model->setTStart(tStart);
+			Integrator->Run( model );
+			Result = model->getResult();
+		}
+	}
 
 	QVector<double> t(Result.rowCount()),
 					h(Result.rowCount()),
