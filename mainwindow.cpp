@@ -18,40 +18,46 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
 	TModel* Model = new SoftLandingModel();
-	MainWindow::showResult(Model);
-	delete Model;
-
-}
-
-void MainWindow::showResult(TModel* model){
-
+	Model->setSamplingIncrement(1e-1l);
 	unsigned long int i = 0;					//ограничение для итерации
 	long double t0 = 0,			//время начала интегрирования
-				t1 = 171.2l - 1,		//время конца интегрирования
-				tStart = 32.687l - 1,	//время запуска двигателя
+				t1 = 80l,		//время конца интегрирования
+				tStart = 0l,	//время запуска двигателя
 				pci1 = 0,		//Пси 1
 				pci2 = 0,		//Пси 2
 				pci3 = 0,		//Пси 3
-				step = model->getSamplingIncrement();	//шаг интегрирования
+				step = Model->getSamplingIncrement();	//шаг интегрирования
+	bool flag = false;
 	TIntegrator* Integrator = new TDormandPrinceIntegrator();
 	Integrator->setPrecision(static_cast<long double>(1e-15));
-	model->setT0(t0);
-	model->setT1(t1);
-	model->setTStart(tStart);
-	Integrator->Run( model );
-	TMatrix Result = model->getResult();
+	Model->setT0(t0);
+	Model->setT1(t1);
+	Model->setTStart(tStart);
+	Integrator->Run( Model );
+	TMatrix Result = Model->getResult();
 
-	while ((pow(Result(Result.rowHigh(),1),2) + pow(Result(Result.rowHigh(),2),2)) > 1000){
-		t1 +=step;
-		tStart = 0;
-		model->setT1(t1);
-		while ((t1 > tStart) && (abs(Result(Result.rowHigh(),2)) > 100)){
-			tStart += step;
-			model->setTStart(tStart);
-			Integrator->Run( model );
-			Result = model->getResult();
+
+	while (sqrtl(powl(Result(Result.rowHigh(),1),2) + powl(Result(Result.rowHigh(),2),2)) > 100l){
+	tStart = t1;
+		while (Result(Result.rowHigh(),1) > 0){
+			t1 +=step;
+			Model->setT1(t1);
+			Model->setTStart(tStart);		//лечу с выкл. двигателем (не удаляй)
+			Integrator->Run( Model );
+			Result = Model->getResult();
+			std::cout <<"t1 = " << t1 << "; h = " << Result(Result.rowHigh(),1) << std::endl;
+		}
+		while ((t1 - tStart > 0) && (abs(Result(Result.rowHigh(),2)) > 10) && (Result(Result.rowHigh(),1) < 0)){
+			tStart -= step;
+			Model->setTStart(tStart);
+			Integrator->Run( Model );
+			Result = Model->getResult();
+			std::cout << "tStart = " << double(tStart) << "; t1 = " << t1 << std::endl;
+			std::cout << "h = " << Result(Result.rowHigh(),1) << "; v = " << Result(Result.rowHigh(),2) << std::endl;
 		}
 	}
+
+
 
 	QVector<double> t(Result.rowCount()),
 					h(Result.rowCount()),
@@ -59,24 +65,24 @@ void MainWindow::showResult(TModel* model){
 					a(Result.rowCount()),
 					m(Result.rowCount());
 
-    for (int i=0; i<Result.rowCount(); i++)
-    {
-        for (int j=0; j<Result.colCount(); j++)
-        {
+	for (int i=0; i<Result.rowCount(); i++)
+	{
+		for (int j=0; j<Result.colCount(); j++)
+		{
 			if (j == 0) { t[i] = Result(i,j); }
 			if (j == 1) { h[i] = Result(i,j); }
 			if (j == 2) { v[i] = Result(i,j); }
 			if (j == 3) { a[i] = Result(i,j); }
 			if (j == 4) { m[i] = Result(i,j); }
-        }
-    }
-		for (int i=0; i<Result.rowCount(); i++){
-			for (int j=0; j<Result.colCount(); j++){
-				std::cout <<std::setw(15) << Result(i,j);
-			}
-			std::cout << '\n';
 		}
-		std::cout <<"i = " << i << "; t0 = " << t0 << "; tStart = " << tStart << "; t1 = " << t1 << std::endl;
+	}
+//		for (int i=0; i<Result.rowCount(); i++){
+//			for (int j=0; j<Result.colCount(); j++){
+//				std::cout <<std::setw(15) << Result(i,j);
+//			}
+//			std::cout << '\n';
+//		}
+//		std::cout <<"i = " << i << "; t0 = " << t0 << "; tStart = " << t1 - tStart << "; t1 = " << t1 << std::endl;
 
 		std::ofstream out("results.txt");
 		for (int i=0; i<Result.rowCount(); i++){
@@ -86,9 +92,9 @@ void MainWindow::showResult(TModel* model){
 			out << std::endl;
 		}
 
-    ui->Graph->clearGraphs();     //Если нужно, то очищаем все графики
-    ui->Graph->addGraph();        //Добавляем один график в Graph
-    //Говорим, что отрисовать нужно график по нашим двум массивам x и y
+	ui->Graph->clearGraphs();     //Если нужно, то очищаем все графики
+	ui->Graph->addGraph();        //Добавляем один график в Graph
+	//Говорим, что отрисовать нужно график по нашим двум массивам x и y
 	ui->Graph->graph(0)->setData(t, h);
 	ui->Graph->graph(0)->setPen(QColor(Qt::black));   //Цвет линии
 
@@ -107,14 +113,17 @@ void MainWindow::showResult(TModel* model){
 	ui->Graph->graph(3)->setData(t, m);
 	ui->Graph->graph(3)->setPen(QColor(Qt::gray));   //Цвет линии
 
-    //Подписываем оси Ox и Oy
-    ui->Graph->xAxis->setLabel("t");
-    ui->Graph->yAxis->setLabel("phi");
+	//Подписываем оси Ox и Oy
+	ui->Graph->xAxis->setLabel("t");
+	ui->Graph->yAxis->setLabel("phi");
 	// Автоматическое масштабирование тиков по Оси X
 	ui->Graph->xAxis->setRange(t0, t1);        // Область графика по X
 	ui->Graph->yAxis->setRange(-400, 550000);    // Область графика по Y
 
-    ui->Graph->replot();              // Обновляет график
+	ui->Graph->replot();              // Обновляет график
 
-        delete Integrator;
+	delete Integrator;
+	delete Model;
+
 }
+

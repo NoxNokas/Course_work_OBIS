@@ -20,7 +20,6 @@ public:
 private slots:
     void on_pushButton_clicked();
 
-    void showResult(TModel* model);
 
 private:
     Ui::MainWindow *ui;

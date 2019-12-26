@@ -27,7 +27,7 @@ class TModel
     public:
         // Общий конструктор моделей - инициализация параметров по умолчанию
         TModel()
-			: SamplingIncrement( static_cast<long double>(1e-3) )
+			: SamplingIncrement( static_cast<long double>(1e-2) )
 			, t0( 0 )
 			, t1( 200)
             , N( 0.01)
@@ -45,7 +45,7 @@ class TModel
 
         // Интервал выдачи результатов
 		inline long double getSamplingIncrement() const { return SamplingIncrement; }
-
+		inline void setSamplingIncrement(long double s) { this->SamplingIncrement = s; }
         // Управление временным интервалом интегрирования
 		inline long double getT0() const { return t0; }
 		inline long double getT1() const { return t1; }
