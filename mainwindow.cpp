@@ -3,26 +3,27 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <limits>
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+	QMainWindow(parent),
+	ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+	ui->setupUi(this);
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+	delete ui;
 }
 
 void MainWindow::on_pushButton_clicked()
 {
 	TModel* Model = new SoftLandingModel();
 	Model->setSamplingIncrement(1e-1l);
-	unsigned long int i = 0;					//ограничение для итерации
-	long double t0 = 0,			//время начала интегрирования
-				t1 = 80l,		//время конца интегрирования
-				tStart = 0l,	//время запуска двигателя
+	long double eps[] = {850, 374, 330};
+	long double t0 = 0l,			//время начала интегрирования
+				t1 = 1.2l,		//время конца интегрирования
+				tStart = t1,	//время запуска двигателя
 				pci1 = 0,		//Пси 1
 				pci2 = 0,		//Пси 2
 				pci3 = 0,		//Пси 3
@@ -31,33 +32,44 @@ void MainWindow::on_pushButton_clicked()
 	TIntegrator* Integrator = new TDormandPrinceIntegrator();
 	Integrator->setPrecision(static_cast<long double>(1e-15));
 	Model->setT0(t0);
-	Model->setT1(t1);
-	Model->setTStart(tStart);
-	Integrator->Run( Model );
-	TMatrix Result = Model->getResult();
+	TMatrix Result;
+long double funNevjazki[2] = {50,10000000};
 
+	for(int i = 0; i<3; i++){
+		Model->setT1(t1);
+		Model->setTStart(tStart);
+		Integrator->Run( Model );
+		Result = Model->getResult();
+		while (funNevjazki[1] >= eps[i]){
+			while (Result(Result.rowHigh(),1) > 0){
+				t1 +=step;
+				if (flag == false) //сколько времени нужно, чтобы упасть с выкл. двигателем
+					tStart = t1;
+				Model->setT1(t1);
+				Model->setTStart(tStart);		//лечу с выкл. двигателем (не удаляй)
+				Integrator->Run( Model );
+				Result = Model->getResult();
+				std::cout <<"[1] t1 = " << t1<< "; tStart = " << double(tStart) << "; h = " << Result(Result.rowHigh(),1)<< "; v = " << Result(Result.rowHigh(),2) << std::endl;
+			}
+			do{
+				tStart -= step;
+				Model->setTStart(tStart);
+				Integrator->Run( Model );
+				Result = Model->getResult();
+				std::cout <<"[2] t1 = " << t1<< "; tStart = " << double(tStart) << "; h = " << Result(Result.rowHigh(),1)<< "; v = " << Result(Result.rowHigh(),2) << std::endl;
 
-	while (sqrtl(powl(Result(Result.rowHigh(),1),2) + powl(Result(Result.rowHigh(),2),2)) > 100l){
-	tStart = t1;
-		while (Result(Result.rowHigh(),1) > 0){
-			t1 +=step;
-			Model->setT1(t1);
-			Model->setTStart(tStart);		//лечу с выкл. двигателем (не удаляй)
-			Integrator->Run( Model );
-			Result = Model->getResult();
-			std::cout <<"t1 = " << t1 << "; h = " << Result(Result.rowHigh(),1) << std::endl;
+			}while ((t1 - tStart > 0) && (tStart >= 0)/* && (Result(Result.rowHigh(),2) <= 0)*/ && (Result(Result.rowHigh(),1) <= 0));
+			funNevjazki[0] = funNevjazki[1];
+			funNevjazki[1] = sqrtl(powl(Result(Result.rowHigh(),1),2) + powl(Result(Result.rowHigh(),2),2));
+			flag = true;
+			tStart += step;
 		}
-		while ((t1 - tStart > 0) && (abs(Result(Result.rowHigh(),2)) > 10) && (Result(Result.rowHigh(),1) < 0)){
-			tStart -= step;
-			Model->setTStart(tStart);
-			Integrator->Run( Model );
-			Result = Model->getResult();
-			std::cout << "tStart = " << double(tStart) << "; t1 = " << t1 << std::endl;
-			std::cout << "h = " << Result(Result.rowHigh(),1) << "; v = " << Result(Result.rowHigh(),2) << std::endl;
-		}
+		//t1 += step;
+		//tStart += step;
+		step *= 0.1l;
+		Model->setSamplingIncrement(step);
+		//eps /= 2.5l;
 	}
-
-
 
 	QVector<double> t(Result.rowCount()),
 					h(Result.rowCount()),
