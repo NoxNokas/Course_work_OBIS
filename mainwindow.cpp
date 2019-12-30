@@ -19,21 +19,23 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
 	TModel* Model = new SoftLandingModel();
-	Model->setSamplingIncrement(1e-1l);
-	long double eps[] = {850, 374, 330};
-	long double t0 = 0l,			//время начала интегрирования
-				t1 = 1.2l,		//время конца интегрирования
-				tStart = t1,	//время запуска двигателя
-				pci1 = 0,		//Пси 1
-				pci2 = 0,		//Пси 2
-				pci3 = 0,		//Пси 3
+	Model->setSamplingIncrement(1e-2);
+	double eps[] = {850, 374, 330};
+	double t0 = 0.0l,			//время начала интегрирования
+				t1 = 171.2,		//время конца интегрирования
+				tStart = 32.687,	//время запуска двигателя
 				step = Model->getSamplingIncrement();	//шаг интегрирования
+	double		psi1 = 32.687,		//Пси 1
+				psi2 = 32.687,		//Пси 2
+				psi3 = 32.687,		//Пси 3
+				psi3_T = 1.0;		//Конечное значение Пси 3
 	bool flag = false;
 	TIntegrator* Integrator = new TDormandPrinceIntegrator();
-	Integrator->setPrecision(static_cast<long double>(1e-15));
+	Integrator->setPrecision(static_cast<double>(1e-15));
 	Model->setT0(t0);
 	TMatrix Result;
-long double funNevjazki[2] = {50,10000000};
+
+double funNevjazki[2] = {50,10000000};
 
 	for(int i = 0; i<3; i++){
 		Model->setT1(t1);
@@ -60,16 +62,99 @@ long double funNevjazki[2] = {50,10000000};
 
 			}while ((t1 - tStart > 0) && (tStart >= 0)/* && (Result(Result.rowHigh(),2) <= 0)*/ && (Result(Result.rowHigh(),1) <= 0));
 			funNevjazki[0] = funNevjazki[1];
-			funNevjazki[1] = sqrtl(powl(Result(Result.rowHigh(),1),2) + powl(Result(Result.rowHigh(),2),2));
+			funNevjazki[1] = sqrt(pow(Result(Result.rowHigh(),1),2) + pow(Result(Result.rowHigh(),2),2));
 			flag = true;
 			tStart += step;
 		}
-		//t1 += step;
-		//tStart += step;
-		step *= 0.1l;
+		step *= 0.1;
 		Model->setSamplingIncrement(step);
-		//eps /= 2.5l;
 	}
+
+
+	Model->setT1(t1);
+	Model->setTStart(tStart);
+	Model->setPsi1(psi1);
+	Model->setPsi2(psi2);
+	Model->setPsi3(psi3);
+	Integrator->Run( Model );
+	Result = Model->getResult();
+
+
+
+
+	double step_psi = 0;
+	double opt_psi3 = 10000;
+	//Для пси 1
+	while(step_psi < 10){
+		Model->setPsi1(step_psi);
+		Integrator->Run( Model );
+		Result = Model->getResult();
+		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+			psi1 = step_psi;
+			opt_psi3 = Result(Result.rowHigh(),7);
+		}
+		Model->setPsi1(-step_psi);
+		Integrator->Run( Model );
+		Result = Model->getResult();
+		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+			psi1 = -step_psi;
+			opt_psi3 = Result(Result.rowHigh(),7);
+		}
+		step_psi += 0.01;
+		std::cout <<step_psi << '\n';
+	}
+	//Для пси 2
+	opt_psi3 = 10000;
+	step_psi = 5.0;
+	Model->setPsi1(psi1);
+	while(step_psi > 0){
+		Model->setPsi2(step_psi);
+		Integrator->Run( Model );
+		Result = Model->getResult();
+		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+			psi2 = step_psi;
+			opt_psi3 = Result(Result.rowHigh(),7);
+		}
+		Model->setPsi2(-step_psi);
+		Integrator->Run( Model );
+		Result = Model->getResult();
+		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+			psi2 = -step_psi;
+			opt_psi3 = Result(Result.rowHigh(),7);
+		}
+		step_psi -= 0.01;
+	}
+
+	//Для пси 3
+	opt_psi3 = 10000;
+	step_psi = 5.0;
+	//Model->setPsi1(psi1);
+	Model->setPsi2(psi2);
+	while(step_psi > 0){
+		Model->setPsi3(step_psi);
+		Integrator->Run( Model );
+		Result = Model->getResult();
+		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+			psi3 = step_psi;
+			opt_psi3 = Result(Result.rowHigh(),7);
+		}
+		Model->setPsi3(-step_psi);
+		Integrator->Run( Model );
+		Result = Model->getResult();
+		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+			psi3 = -step_psi;
+			opt_psi3 = Result(Result.rowHigh(),7);
+		}
+		step_psi -= 0.01;
+	}
+
+	//Model->setPsi1(psi1);
+	//Model->setPsi2(psi2);
+	Model->setPsi3(psi3);
+	//Model->setT1(t1);
+	//Model->setTStart(tStart);
+	Integrator->Run( Model );
+	Result = Model->getResult();
 
 	QVector<double> t(Result.rowCount()),
 					h(Result.rowCount()),
@@ -88,13 +173,12 @@ long double funNevjazki[2] = {50,10000000};
 			if (j == 4) { m[i] = Result(i,j); }
 		}
 	}
-//		for (int i=0; i<Result.rowCount(); i++){
-//			for (int j=0; j<Result.colCount(); j++){
-//				std::cout <<std::setw(15) << Result(i,j);
-//			}
-//			std::cout << '\n';
-//		}
-//		std::cout <<"i = " << i << "; t0 = " << t0 << "; tStart = " << t1 - tStart << "; t1 = " << t1 << std::endl;
+		for (int i=0; i<Result.rowCount(); i++){
+			for (int j=0; j<Result.colCount(); j++){
+				std::cout <<std::setw(15) << Result(i,j);
+			}
+			std::cout << '\n';
+		}
 
 		std::ofstream out("results.txt");
 		for (int i=0; i<Result.rowCount(); i++){

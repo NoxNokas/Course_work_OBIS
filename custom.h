@@ -10,8 +10,8 @@
 class SoftLandingModel  : public TModel
 {
 protected:
-	const long double
-			R_p = 6371000,		//Радиус планеты Змемля
+	const double
+			R_p = 6371000,		//Радиус планеты Земля
 			MStart = 26000,		//26 тонн масса возвращаемой 1-й ступени Falcon 9 с оборудованием (сухая масса)
 			J = 28200,			//Удельный импульс = 282 c;
 			Fuel = 517700,		//Начальный запас топлива кг (в момент начала посадки)
@@ -22,7 +22,7 @@ protected:
 public:
 		SoftLandingModel(  );
 		~SoftLandingModel() {}
-		void getRight(const TVector& X, long double t, TVector& Y);
-		long double getG(const long double H);
-		long double getP(const long double beta);
+		void getRight(const TVector& X, double t, TVector& Y);
+		double getG(const double H);
+		double getP(const double beta);
 };

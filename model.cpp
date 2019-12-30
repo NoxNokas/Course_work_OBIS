@@ -3,7 +3,7 @@
 #include "model.h"
 
 //---------------------------------------------------------------------------
-void TModel::addResult( const TVector& X, long double t )
+void TModel::addResult( const TVector& X, double t )
 {
     // Проверим, выходит ли счётчик строк в матрице результатов за пределы последней строки
     // Если да, то увеличим количество строк на 1

@@ -17,7 +17,7 @@ struct STypeZero
     T value;
 };
 
-STypeZero<  long double > g_ldZero;
+STypeZero<double > g_ldZero;
 
 
 
@@ -28,8 +28,8 @@ STypeZero<  long double > g_ldZero;
 //===========================================================================
 // class TDormandPrinceIntegrator
 
-const long double TDormandPrinceIntegrator::c[7] = { 0, 1./5, 3./10, 4./5, 8./9, 1., 1. };
-const long double TDormandPrinceIntegrator::a[7][6] = {
+const double TDormandPrinceIntegrator::c[7] = { 0, 1./5, 3./10, 4./5, 8./9, 1., 1. };
+const double TDormandPrinceIntegrator::a[7][6] = {
     { 0. },
     { 1./5 },
     { 3./40, 9./40 },
@@ -38,8 +38,8 @@ const long double TDormandPrinceIntegrator::a[7][6] = {
     { 9017./3168, -355./33, 46732./5247, 49./176, -5103./18656 },
     { 35./384, 0., 500./1113, 125./192, -2187./6784, 11./84 }
 };
-const long double TDormandPrinceIntegrator::b1[7] = { 35./384, 0., 500./1113, 125./192, -2187./6784, 11./84, 0 };
-const long double TDormandPrinceIntegrator::b2[7] = { 5179./57600, 0., 7571./16695, 393./640, -92097./339200, 187./2100, 1./40 };
+const double TDormandPrinceIntegrator::b1[7] = { 35./384, 0., 500./1113, 125./192, -2187./6784, 11./84, 0 };
+const double TDormandPrinceIntegrator::b2[7] = { 5179./57600, 0., 7571./16695, 393./640, -92097./339200, 187./2100, 1./40 };
 
 //---------------------------------------------------------------------------
 
@@ -47,7 +47,7 @@ TDormandPrinceIntegrator::TDormandPrinceIntegrator()
     : TIntegrator()
 {
     // Определение машинного нуля
-	long double v = 1.;
+	double v = 1.;
     while (1.+v > 1.) {
         u = v;
         v = v/2.;
@@ -56,12 +56,12 @@ TDormandPrinceIntegrator::TDormandPrinceIntegrator()
 
 //---------------------------------------------------------------------------
 
-long double TDormandPrinceIntegrator::Run(TModel* Model)
+double TDormandPrinceIntegrator::Run(TModel* Model)
 {
 
 //printf ("\n1.1");
 
-	long double // Это время для интегрирования (увеличивается на величину шага интегрирования)
+	double // Это время для интегрирования (увеличивается на величину шага интегрирования)
                 t = Model->getT0(),
                 // Это время для выдачи (увеличивается дискретно на величину плотности)
                 t_out = t,
@@ -125,7 +125,7 @@ long double TDormandPrinceIntegrator::Run(TModel* Model)
                 X1[k] += K[j][k] * b1[j] * h;
                 X2[k] += K[j][k] * b2[j] * h;
             }
-			e += powl( h * (X1[k] - X2[k]) / max( max( fabsl(X[k]), fabsl(X1[k]) ), max((long double)1e-5, 2*g_ldZero.value/Eps) ) , 2 );
+			e += powl( h * (X1[k] - X2[k]) / max( max( fabsl(X[k]), fabsl(X1[k]) ), max((double)1e-5, 2*g_ldZero.value/Eps) ) , 2 );
         }
         e = sqrtl( e / X.size() );
 
@@ -139,7 +139,7 @@ long double TDormandPrinceIntegrator::Run(TModel* Model)
         // Формирование результатов при помощи механизма плотной выдачи
         while ( (t_out < t + h) && (t_out <= t1) )
         {
-			long double l_ldTheta = (t_out - t)/h,
+			double l_ldTheta = (t_out - t)/h,
                         b[6];
 
              // Рассчитываем коэффициенты плотной выдачи
@@ -153,7 +153,7 @@ long double TDormandPrinceIntegrator::Run(TModel* Model)
             // Получаем результат для выдачи
             for ( int k = X.high(); k >= 0; k-- )
             {
-				long double l_ldSum  = 0;
+				double l_ldSum  = 0;
                 for ( int j = 5; j >= 0; j-- )
                     l_ldSum += b[j] * K[j][k];
                 Xout[k] = X[k] + h * l_ldSum;

@@ -11,15 +11,15 @@ class TIntegrator
 {
     protected:
         // Максимальная погрешность на шаге
-		   long double Eps;
+		   double Eps;
 
     public:
         // Базовый конструктор
 		TIntegrator() : Eps( 1e-10 ) {}
-		inline void setPrecision(  long double Eps ) { this->Eps = Eps; }
-		inline    long double getPrecision() const { return Eps; }
+		inline void setPrecision(double Eps ) { this->Eps = Eps; }
+		inline double getPrecision() const { return Eps; }
         // Абстрактный метод, реализующий процедуру численного интегрирования и возвращающий глобальную погрешность вычислений
-		virtual   long double Run(TModel* Model) = 0;
+		virtual double Run(TModel* Model) = 0;
 };
 
 //---------------------------------------------------------------------------
@@ -28,14 +28,14 @@ class TDormandPrinceIntegrator : public TIntegrator
 {
     private:
         // Коэффициенты a,b,c
-		static const  long double c[7], a[7][6], b1[7], b2[7];
+		static const double c[7], a[7][6], b1[7], b2[7];
         // Коэффициенты K[i]
-        TVector K[7];
+		TVector K[7];
         // Машинный нуль
-		 long double u;
+		 double u;
     public:
         TDormandPrinceIntegrator();
-		 long double Run(TModel* Model);
+		double Run(TModel* Model);
 };
 
 //---------------------------------------------------------------------------

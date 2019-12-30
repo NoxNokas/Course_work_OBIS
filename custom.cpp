@@ -16,22 +16,22 @@ SoftLandingModel::SoftLandingModel() : TModel()
 	X0[2] = - g_0 * pow(R_p / (R_p + H_0), 2);					//начальное ускорение
 	X0[3] = MStart + Fuel;		//стартовая масса КА
 
-	X0[4] = 4;
-	X0[5] = 2;
-	X0[6] = 1;
+	X0[4] = psi1;
+	X0[5] = psi2;
+	X0[6] = psi3;
 }
 
 //---------------------------------------------------------------------------
 
-long double    SoftLandingModel::getG(const long double H){
+double SoftLandingModel::getG(const double H){
 	return g_0 * pow(R_p / (R_p + H), 2);
 }
 
-long double   SoftLandingModel::getP(const long double beta){
+double SoftLandingModel::getP(const double beta){
 	return (J*beta);
 }
 
-void SoftLandingModel::getRight(const TVector& X, long double t, TVector& Y)
+void SoftLandingModel::getRight(const TVector& X, double t, TVector& Y)
 {
 	Y.resize(7);
 	//Векторы состояния
