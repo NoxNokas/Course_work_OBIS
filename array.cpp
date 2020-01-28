@@ -243,7 +243,7 @@
                 delete[] data[i];
                 delete[] data;
 
-                data = NULL;
+				data = nullptr;
                 n = m = 0;
         }
     }

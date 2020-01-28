@@ -19,11 +19,11 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
 	TModel* Model = new SoftLandingModel();
-	Model->setSamplingIncrement(1e-2);
-	double eps[] = {850, 374, 330};
+	Model->setSamplingIncrement(1e-1);
+	double eps[] = {850, 374, 340};
 	double t0 = 0.0l,			//время начала интегрирования
-				t1 = 171.2,		//время конца интегрирования
-				tStart = 32.687,	//время запуска двигателя
+				t1 = 1,		//время конца интегрирования
+				tStart = 1,	//время запуска двигателя
 				step = Model->getSamplingIncrement();	//шаг интегрирования
 	double		psi1 = 32.687,		//Пси 1
 				psi2 = 32.687,		//Пси 2
@@ -33,9 +33,18 @@ void MainWindow::on_pushButton_clicked()
 	TIntegrator* Integrator = new TDormandPrinceIntegrator();
 	Integrator->setPrecision(static_cast<double>(1e-15));
 	Model->setT0(t0);
+		Model->setPsi1(1.4);
+		Model->setPsi2(1.6);
+		Model->setPsi3(1.8);
 	TMatrix Result;
 
 double funNevjazki[2] = {50,10000000};
+
+
+std::ofstream out("results.txt");
+
+
+
 
 	for(int i = 0; i<3; i++){
 		Model->setT1(t1);
@@ -60,9 +69,10 @@ double funNevjazki[2] = {50,10000000};
 				Result = Model->getResult();
 				std::cout <<"[2] t1 = " << t1<< "; tStart = " << double(tStart) << "; h = " << Result(Result.rowHigh(),1)<< "; v = " << Result(Result.rowHigh(),2) << std::endl;
 
-			}while ((t1 - tStart > 0) && (tStart >= 0)/* && (Result(Result.rowHigh(),2) <= 0)*/ && (Result(Result.rowHigh(),1) <= 0));
+			}while ((t1 - tStart > 0) && (tStart >= 0) && (Result(Result.rowHigh(),2) <= 0) && (Result(Result.rowHigh(),1) <= 0));
 			funNevjazki[0] = funNevjazki[1];
-			funNevjazki[1] = sqrt(pow(Result(Result.rowHigh(),1),2) + pow(Result(Result.rowHigh(),2),2));
+			funNevjazki[1] = sqrt(pow(Result(Result.rowHigh(),1),2) + pow(Result(Result.rowHigh(),2),2) + pow(Result(Result.rowHigh(),7),2));
+			out << funNevjazki[1]<< std::endl;
 			flag = true;
 			tStart += step;
 		}
@@ -71,90 +81,90 @@ double funNevjazki[2] = {50,10000000};
 	}
 
 
-	Model->setT1(t1);
-	Model->setTStart(tStart);
-	Model->setPsi1(psi1);
-	Model->setPsi2(psi2);
-	Model->setPsi3(psi3);
-	Integrator->Run( Model );
-	Result = Model->getResult();
+//	Model->setT1(t1);
+//	Model->setTStart(tStart);
+//	Model->setPsi1(psi1);
+//	Model->setPsi2(psi2);
+//	Model->setPsi3(psi3);
+//	Integrator->Run( Model );
+//	Result = Model->getResult();
 
 
 
 
 	double step_psi = 0;
 	double opt_psi3 = 10000;
-	//Для пси 1
-	while(step_psi < 10){
-		Model->setPsi1(step_psi);
-		Integrator->Run( Model );
-		Result = Model->getResult();
-		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
-			psi1 = step_psi;
-			opt_psi3 = Result(Result.rowHigh(),7);
-		}
-		Model->setPsi1(-step_psi);
-		Integrator->Run( Model );
-		Result = Model->getResult();
-		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
-			psi1 = -step_psi;
-			opt_psi3 = Result(Result.rowHigh(),7);
-		}
-		step_psi += 0.01;
-		std::cout <<step_psi << '\n';
-	}
-	//Для пси 2
-	opt_psi3 = 10000;
-	step_psi = 5.0;
-	Model->setPsi1(psi1);
-	while(step_psi > 0){
-		Model->setPsi2(step_psi);
-		Integrator->Run( Model );
-		Result = Model->getResult();
-		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
-			psi2 = step_psi;
-			opt_psi3 = Result(Result.rowHigh(),7);
-		}
-		Model->setPsi2(-step_psi);
-		Integrator->Run( Model );
-		Result = Model->getResult();
-		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
-			psi2 = -step_psi;
-			opt_psi3 = Result(Result.rowHigh(),7);
-		}
-		step_psi -= 0.01;
-	}
+//	//Для пси 1
+//	while(step_psi < 10){
+//		Model->setPsi1(step_psi);
+//		Integrator->Run( Model );
+//		Result = Model->getResult();
+//		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+//			psi1 = step_psi;
+//			opt_psi3 = Result(Result.rowHigh(),7);
+//		}
+//		Model->setPsi1(-step_psi);
+//		Integrator->Run( Model );
+//		Result = Model->getResult();
+//		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+//			psi1 = -step_psi;
+//			opt_psi3 = Result(Result.rowHigh(),7);
+//		}
+//		step_psi += 0.01;
+//		std::cout <<step_psi << '\n';
+//	}
+//	//Для пси 2
+//	opt_psi3 = 10000;
+//	step_psi = 5.0;
+//	Model->setPsi1(psi1);
+//	while(step_psi > 0){
+//		Model->setPsi2(step_psi);
+//		Integrator->Run( Model );
+//		Result = Model->getResult();
+//		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+//			psi2 = step_psi;
+//			opt_psi3 = Result(Result.rowHigh(),7);
+//		}
+//		Model->setPsi2(-step_psi);
+//		Integrator->Run( Model );
+//		Result = Model->getResult();
+//		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+//			psi2 = -step_psi;
+//			opt_psi3 = Result(Result.rowHigh(),7);
+//		}
+//		step_psi -= 0.01;
+//	}
 
-	//Для пси 3
-	opt_psi3 = 10000;
-	step_psi = 5.0;
-	//Model->setPsi1(psi1);
-	Model->setPsi2(psi2);
-	while(step_psi > 0){
-		Model->setPsi3(step_psi);
-		Integrator->Run( Model );
-		Result = Model->getResult();
-		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
-			psi3 = step_psi;
-			opt_psi3 = Result(Result.rowHigh(),7);
-		}
-		Model->setPsi3(-step_psi);
-		Integrator->Run( Model );
-		Result = Model->getResult();
-		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
-			psi3 = -step_psi;
-			opt_psi3 = Result(Result.rowHigh(),7);
-		}
-		step_psi -= 0.01;
-	}
+//	//Для пси 3
+//	opt_psi3 = 10000;
+//	step_psi = 5.0;
+//	//Model->setPsi1(psi1);
+//	Model->setPsi2(psi2);
+//	while(step_psi > 0){
+//		Model->setPsi3(step_psi);
+//		Integrator->Run( Model );
+//		Result = Model->getResult();
+//		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+//			psi3 = step_psi;
+//			opt_psi3 = Result(Result.rowHigh(),7);
+//		}
+//		Model->setPsi3(-step_psi);
+//		Integrator->Run( Model );
+//		Result = Model->getResult();
+//		if (abs(Result(Result.rowHigh(),7) - psi3_T) <= abs(opt_psi3 - psi3_T)){
+//			psi3 = -step_psi;
+//			opt_psi3 = Result(Result.rowHigh(),7);
+//		}
+//		step_psi -= 0.01;
+//	}
 
-	//Model->setPsi1(psi1);
-	//Model->setPsi2(psi2);
-	Model->setPsi3(psi3);
-	//Model->setT1(t1);
-	//Model->setTStart(tStart);
-	Integrator->Run( Model );
-	Result = Model->getResult();
+//	//Model->setPsi1(psi1);
+//	//Model->setPsi2(psi2);
+//	Model->setPsi3(psi3);
+//	//Model->setT1(t1);
+//	//Model->setTStart(tStart);
+//	Integrator->Run( Model );
+//	Result = Model->getResult();
 
 	QVector<double> t(Result.rowCount()),
 					h(Result.rowCount()),
@@ -173,20 +183,20 @@ double funNevjazki[2] = {50,10000000};
 			if (j == 4) { m[i] = Result(i,j); }
 		}
 	}
-		for (int i=0; i<Result.rowCount(); i++){
-			for (int j=0; j<Result.colCount(); j++){
-				std::cout <<std::setw(15) << Result(i,j);
-			}
-			std::cout << '\n';
-		}
+//		for (int i=0; i<Result.rowCount(); i++){
+//			for (int j=0; j<Result.colCount()-3; j++){
+//				std::cout <<std::setw(15) << Result(i,j);
+//			}
+//			std::cout << '\n';
+//		}
 
-		std::ofstream out("results.txt");
-		for (int i=0; i<Result.rowCount(); i++){
-			for (int j=0; j<Result.colCount(); j++){
-				out << Result(i,j) << ';';
-			}
-			out << std::endl;
-		}
+//		std::ofstream out("results.txt");
+//		for (int i=0; i<Result.rowCount(); i++){
+//			for (int j=0; j<Result.colCount(); j++){
+//				out << Result(i,j) << ';';
+//			}
+//			out << std::endl;
+//		}
 
 	ui->Graph->clearGraphs();     //Если нужно, то очищаем все графики
 	ui->Graph->addGraph();        //Добавляем один график в Graph
